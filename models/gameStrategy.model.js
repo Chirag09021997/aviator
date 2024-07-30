@@ -12,10 +12,6 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
         type: DataTypes.DOUBLE,
         defaultValue: 0.00,
       },
-      position: {
-        type: DataTypes.INTEGER,
-        defaultValue: null,
-      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,

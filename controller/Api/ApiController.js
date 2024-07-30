@@ -1,6 +1,6 @@
 const { methods: commonService } = require("../../services/index");
-const { payments: PaymentsModel, users: UserRegisterModel } = require('../../models/index');
-const { usersRegister: UserRegisterValidate, paymentDeposit: PaymentDepositValidate, paymentWithdraw: PaymentWithdrawValidate, wallet: WalletValidate } = require("../../validate/api");
+const { payments: PaymentsModel, users: UserRegisterModel, bettingUser: BettingUserModel } = require('../../models/index');
+const { usersRegister: UserRegisterValidate, paymentDeposit: PaymentDepositValidate, paymentWithdraw: PaymentWithdrawValidate, wallet: WalletValidate, myBet: MyBetValidate } = require("../../validate/api");
 
 const UserRegister = async (req, res) => {
     const { mobile_no, upi_id } = req.body;
@@ -121,7 +121,7 @@ const walletList = async (req, res) => {
             }, {});
             return res.status(400).json({ status: false, message: "Validation Errors.", errors });
         }
-        
+
         // Check if the user is registered
         const user = await commonService.get(UserRegisterModel, { where: { mobile_no } });
         if (!user) {
@@ -144,4 +144,40 @@ const walletList = async (req, res) => {
     }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList };
+const myBet = async (req, res) => {
+    const { mobile_no } = req.body;
+    try {
+        const { error } = MyBetValidate.validate(req.body, {
+            abortEarly: false,
+        });
+        if (error) {
+            const errors = error.details.reduce((acc, err) => {
+                acc[err.context.key] = err.message;
+                return acc;
+            }, {});
+            return res.status(400).json({ status: false, message: "Validation Errors.", errors });
+        }
+
+        // Check if the user is registered
+        const user = await commonService.get(UserRegisterModel, { where: { mobile_no } });
+        if (!user) {
+            return res.status(400).json({ status: false, message: "User not registered. Please register first." });
+        }
+
+        const details = await commonService.getAll(BettingUserModel, {
+            attributes: ["betting_id", "amount", "out_amount", "created_at"],
+            where: { user_id: user.id },
+        });
+
+        return res.status(200).json({
+            status: true,
+            message: "Get all bet records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.log("myBet Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+};
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet };

@@ -57,7 +57,6 @@ const paymentsWithdraw = Joi.object({
 
 const gameStrategy = Joi.object({
     game_option: Joi.number().min(1).max(300).precision(2).required(),
-    position: Joi.number().integer().min(1).max(50000),
 });
 
 const setting = Joi.object({

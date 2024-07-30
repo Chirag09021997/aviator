@@ -16,13 +16,21 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
         type: DataTypes.DOUBLE,
         defaultValue: 0.00,
       },
-      total_user: {
+      t_users: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
-      },   
+      },
+      game_strategy_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       result: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
+        type: DataTypes.DOUBLE,
+        defaultValue: 0.00,
+      },
+      status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
       },
       created_at: {
         type: DataTypes.DATE,

@@ -2,9 +2,34 @@ const { methods: commonService } = require('../services/index');
 const { renderPage, cmDeleteRecord } = require("./commonController");
 const { gameStrategy: GameStrategyModel } = require('../models');
 const { gameStrategy: GameStrategyValidate } = require('../validate/index');
+const { sequelize } = require('../models/index');
+const changeUpdateForm = async (req, res) => {
+    const getData = await commonService.getAll(GameStrategyModel, { attributes: ["id", "game_option"] });
+    renderPage(req, res, "gameStrategy/changeUpdate", {
+        title: "Game Strategy",
+        activePage: "gameStrategy",
+        getData
+    });
+};
+
+const changeUpdate = async (req, res) => {
+    const { game_option } = req.body;
+    try {
+        const transaction = await sequelize.transaction();
+        const gameStrategyData = game_option.map(option => ({ game_option: option }));
+        await sequelize.query('TRUNCATE TABLE game_strategies', { transaction });
+        // await GameStrategyModel.destroy({ truncate: true });
+        await GameStrategyModel.bulkCreate(gameStrategyData);
+        res.redirect("/game-strategy");
+    } catch (error) {
+        console.error('gameStrategy changeUpdate Error updating records:', error);
+        // res.status(500).send('Internal Server Error');
+        res.redirect("/game-strategy");
+    }
+};
 
 const index = async (req, res) => {
-    const getData = await commonService.getAll(GameStrategyModel, { attributes: ["id", "game_option", "position"] });
+    const getData = await commonService.getAll(GameStrategyModel, { attributes: ["id", "game_option"] });
     renderPage(req, res, "gameStrategy/index", {
         title: "Game Strategy",
         activePage: "gameStrategy",
@@ -20,7 +45,7 @@ const create = async (req, res) => {
 };
 
 const store = async (req, res) => {
-    const { game_option, position } = req.body;
+    const { game_option } = req.body;
     const { error } = GameStrategyValidate.validate(req.body, {
         abortEarly: false,
     });
@@ -38,7 +63,7 @@ const store = async (req, res) => {
         });
     }
     try {
-        await commonService.create(GameStrategyModel, { game_option, position });
+        await commonService.create(GameStrategyModel, { game_option });
         res.redirect("/game-strategy");
     } catch (error) {
         console.error("gameStrategy store Error =>", error);
@@ -54,7 +79,7 @@ const store = async (req, res) => {
 const show = async (req, res) => {
     const id = req?.params?.id;
     try {
-        const detail = await commonService.get(GameStrategyModel, { where: { id }, attributes: ["id", "game_option", "position"] });
+        const detail = await commonService.get(GameStrategyModel, { where: { id }, attributes: ["id", "game_option"] });
         if (detail) {
             renderPage(req, res, "gameStrategy/show", {
                 title: "Game Strategy",
@@ -72,7 +97,7 @@ const show = async (req, res) => {
 const edit = async (req, res) => {
     const id = req?.params?.id;
     try {
-        const detail = await commonService.get(GameStrategyModel, { where: { id }, attributes: ["id", "game_option", "position"] });
+        const detail = await commonService.get(GameStrategyModel, { where: { id }, attributes: ["id", "game_option"] });
         if (detail) {
             renderPage(req, res, "gameStrategy/edit", {
                 title: "Game Strategy",
@@ -90,7 +115,7 @@ const edit = async (req, res) => {
 const update = async (req, res) => {
     const id = req?.params?.id;
     if (id) {
-        const { game_option, position } = req.body;
+        const { game_option } = req.body;
         const { error } = GameStrategyValidate.validate(req.body, {
             abortEarly: false,
         });
@@ -114,7 +139,6 @@ const update = async (req, res) => {
                     where: { id }
                 }, {
                     game_option,
-                    position
                 });
                 if (update) {
                     res.redirect("/game-strategy");
@@ -146,4 +170,4 @@ const deleteRecord = async (req, res) => {
     cmDeleteRecord(req, res, GameStrategyModel);
 };
 
-module.exports = { index, create, store, show, edit, update, deleteRecord };
+module.exports = { index, create, store, show, edit, update, deleteRecord, changeUpdateForm, changeUpdate };

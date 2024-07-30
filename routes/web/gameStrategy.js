@@ -2,7 +2,10 @@ const express = require("express");
 const router = express.Router();
 const gameStrategyController = require("../../controller/gameStrategyController");
 
-router.get("/", gameStrategyController.index);
+// router.get("/", gameStrategyController.index);
+// router.get("/", gameStrategyController.index);
+router.get('/', gameStrategyController.changeUpdateForm);
+router.post('/change-update', gameStrategyController.changeUpdate);
 
 router.get("/create", gameStrategyController.create);
 router.post("/store", gameStrategyController.store);

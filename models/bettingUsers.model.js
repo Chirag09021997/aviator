@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize, DataTypes) => {
-  const Betting = sequelize.define(
-    "betting",
+  const BettingUsers = sequelize.define(
+    "betting_users",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -15,6 +15,10 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
       user_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      amount: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0.00,
       },
       out_amount: {
         type: DataTypes.DOUBLE,
@@ -37,5 +41,5 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
       updatedAt: "updated_at",
     }
   );
-  return Betting;
+  return BettingUsers;
 };

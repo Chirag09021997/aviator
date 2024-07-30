@@ -19,6 +19,7 @@ $(document).ready(function () {
     });
 
     $('.deleteRecord').click(function () {
+        console.log("called deleted records");
         var id = $(this).data('id');
         var url = $(this).data('url');
         if (confirm('Are you sure you want to delete this record?')) {

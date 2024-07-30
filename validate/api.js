@@ -22,4 +22,8 @@ const wallet = Joi.object({
     mobile_no: Joi.string().required(),
 });
 
-module.exports = { usersRegister, paymentDeposit, paymentWithdraw, wallet };
+const myBet = Joi.object({
+    mobile_no: Joi.string().required(),
+});
+
+module.exports = { usersRegister, paymentDeposit, paymentWithdraw, wallet, myBet };

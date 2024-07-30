@@ -15,27 +15,37 @@
                     <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5">
                         <div class="flex justify-between items-center">
                             <h1 class="text-xl font-bold">
-                                <a href="/game-strategy">
+                                <a href="/cash-plan">
                                     <i class="fa fa-arrow-left text-white bg-black p-2 rounded-full"
                                         aria-hidden="true"></i>
                                 </a>
-                                <span class="mx-3">Game Strategy Show</span>
+                                <span class="mx-3">Cash Plan Show</span>
                             </h1>
                         </div>
                     </div>
 
                     <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5">
                         <div class="mb-5">
-                            <label for="game_option"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Game
-                                Option
+                            <label for="amount"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount
                                 :</label>
-                            <input type="number" id="game_option"
+                            <input type="number" id="amount"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                value="<%= formData?.game_option %>" disabled />
+                                placeholder="10" value="<%= formData?.amount %>" required />
                         </div>
+
+                        <div class="mb-5">
+                            <label for="bonus_amount"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Bonus Amount
+                                :</label>
+                            <input type="number" id="bonus_amount"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="2.3" value="<%= formData?.bonus_amount %>" step="0.01" />
+                        </div>
+
                     </div>
                 </section>
+
             </div>
 </body>
 

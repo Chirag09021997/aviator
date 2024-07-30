@@ -30,13 +30,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// create table in database start.
 const db = require('./models');
+// create table in database start.
 const synchronizeAndSeed = async () => {
   try {
     await db.sequelize.sync({ force: true });
     // await db.sequelize.sync();
     await require('./seeder/index').settingSeed();
+    await require('./seeder/index').gameStrategySeed();
   } catch (error) {
     console.error("Error during synchronization and seeding:", error);
   }
@@ -47,12 +48,85 @@ const synchronizeAndSeed = async () => {
 app.use('/', indexRouter);
 app.use('/api', apiRouter);
 
+require('./cronJob/index');
+
+const { betting: BettingModel, bettingUser: BettingUserModel } = require('./models/index');
+const connectedUsers = new Map();
+let bettingInterval = null;
+
+// Function to fetch and emit the latest betting event
+const sendBettingEvent = async () => {
+  try {
+    const latestBettingEvent = await BettingModel.findOne({
+      attributes: ['id', 'status'],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Emit the event to all connected users
+    connectedUsers.forEach((userData, socketId) => {
+      const socket = userData.socket;
+      socket.emit('bettingData', {
+        message: 'aviator status.',
+        latestBettingEvent
+      });
+    });
+  } catch (error) {
+    console.error('Error fetching betting event:', error);
+  }
+};
+
+const startBettingInterval = () => {
+  if (!bettingInterval) {
+    bettingInterval = setInterval(sendBettingEvent, 1000);
+  }
+};
+
+const stopBettingInterval = () => {
+  if (bettingInterval && connectedUsers.size === 0) {
+    clearInterval(bettingInterval);
+    bettingInterval = null;
+  }
+};
 
 // Socket Code Start 
 io.on("connection", (socket) => {
   console.log("socket connected");
+  connectedUsers.set(socket.id, { socket });
+
+  if (connectedUsers.size === 1) {
+    startBettingInterval();
+  }
+
+  socket.on("joinBettingEvent", async (data) => {
+    try {
+      const { userId } = data;
+      // Fetch the betting event with status true and the provided ID
+      const bettingEvent = await BettingModel.findOne({
+        where: { status: true },
+        order: [["createdAt", "DESC"]],
+      });
+      if (!bettingEvent) {
+        socket.emit('joinError', { message: 'Betting event not found or not active.' });
+        return;
+      }
+      // Create an entry in the bettingUser table
+      await BettingUserModel.create({
+        user_id: userId,
+        betting_id: bettingEvent.id
+      });
+      socket.emit('joinSuccess', { message: 'Successfully joined the betting event.' });
+    } catch (error) {
+      console.error('Error joining betting event:', error);
+      socket.emit('joinError', { message: 'An error occurred while joining the betting event.' });
+    }
+  });
+
   socket.on("disconnect", () => {
+    connectedUsers.delete(socket.id);
     console.log("disconnect socket io.");
+    if (connectedUsers.size <= 0) {
+      stopBettingInterval();
+    }
   });
 });
 // Socket Code End

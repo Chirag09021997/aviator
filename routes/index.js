@@ -23,4 +23,5 @@ router.use('/payment-withdraw', authCheck, require('./web/paymentWithdraw'));
 router.use('/game-strategy', authCheck, require("./web/gameStrategy"));
 router.use('/settings', authCheck, require('./web/settings'))
 
+router.use('/betting', authCheck, require('./web/betting'));
 module.exports = router;
