@@ -24,7 +24,7 @@ const betSuggestion = Joi.object({
 
 const cashPlan = Joi.object({
     amount: Joi.number().integer().min(1).max(50000).required(),
-    bonus_amount: Joi.number().min(1).max(10000).precision(2).required(),
+    bonus_amount: Joi.number().min(0).max(10000).precision(2).required(),
 });
 
 const usersRegister = Joi.object({

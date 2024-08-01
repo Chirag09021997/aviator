@@ -1,5 +1,5 @@
 const { methods: commonService } = require("../../services/index");
-const { payments: PaymentsModel, users: UserRegisterModel, bettingUser: BettingUserModel } = require('../../models/index');
+const { payments: PaymentsModel, users: UserRegisterModel, bettingUser: BettingUserModel, cashPlans: CashPlanModel, betSuggestPlans: betSuggestPlansModel } = require('../../models/index');
 const { usersRegister: UserRegisterValidate, paymentDeposit: PaymentDepositValidate, paymentWithdraw: PaymentWithdrawValidate, wallet: WalletValidate, myBet: MyBetValidate } = require("../../validate/api");
 
 const UserRegister = async (req, res) => {
@@ -16,15 +16,31 @@ const UserRegister = async (req, res) => {
             return res.status(400).json({ status: false, message: "Validation Errors.", errors });
         }
 
+        const cashPlanDetails = await commonService.getAll(CashPlanModel, {
+            attributes: ["amount", "bonus_amount"]
+        });
+
+        const betSuggestPlansDetails = await commonService.getAll(betSuggestPlansModel, {
+            attributes: ["amount"]
+        });
+
         const userDetail = await commonService.get(UserRegisterModel, { where: { mobile_no } });
         if (userDetail) {
-            return res.status(404).json({ status: false, message: "User all ready exists." });
+            return res.status(404).json({
+                status: false,
+                message: "User all ready registered.",
+                data: userDetail,
+                cashPlan: cashPlanDetails,
+                betSuggestPlans: betSuggestPlansDetails
+            });
         }
         const user = await commonService.create(UserRegisterModel, { mobile_no, upi_id });
         return res.status(201).json({
             status: true,
             message: "User created successfully.",
-            data: user
+            data: user,
+            cashPlan: cashPlanDetails,
+            betSuggestPlans: betSuggestPlansDetails
         });
     } catch (error) {
         console.log("UserRegister Error => ", error);
@@ -129,7 +145,7 @@ const walletList = async (req, res) => {
         }
 
         const details = await commonService.getAll(PaymentsModel, {
-            attributes: ["amount", "status", "transaction_no", "note", "created_at"],
+            attributes: ["amount", "status", "transaction_no", "pay_type", "note", "created_at"],
             where: { mobile_no },
         });
 
@@ -180,4 +196,36 @@ const myBet = async (req, res) => {
     }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet };
+const cashPlans = async (req, res) => {
+    try {
+        const details = await commonService.getAll(CashPlanModel, {
+            attributes: ["amount", "bonus_amount"]
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Get all cash plan records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.log("cashPlans Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+};
+
+const betSuggestPlans = async (req, res) => {
+    try {
+        const details = await commonService.getAll(betSuggestPlansModel, {
+            attributes: ["amount"]
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Get all bet suggest plans records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.log("betSuggestPlans Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+};
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans };

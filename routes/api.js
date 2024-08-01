@@ -8,4 +8,6 @@ router.post("/payment-deposit", upload.single('photo'), ApiController.paymentDep
 router.post("/payment-withdraw", ApiController.paymentWithdraw);
 router.post("/wallet", ApiController.walletList);
 router.post("/my-bet", ApiController.myBet);
+router.get("/cash-plan", ApiController.cashPlans);
+router.get("/bet-suggest-plans", ApiController.betSuggestPlans);
 module.exports = router;

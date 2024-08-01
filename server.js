@@ -50,7 +50,7 @@ app.use('/api', apiRouter);
 
 require('./cronJob/index');
 
-const { betting: BettingModel, bettingUser: BettingUserModel } = require('./models/index');
+const { betting: BettingModel, bettingUser: BettingUserModel, users: UserModel, Sequelize } = require('./models/index');
 const connectedUsers = new Map();
 let bettingInterval = null;
 
@@ -99,25 +99,112 @@ io.on("connection", (socket) => {
 
   socket.on("joinBettingEvent", async (data) => {
     try {
-      const { userId } = data;
+      const { userId, amount = 10 } = data;
       // Fetch the betting event with status true and the provided ID
       const bettingEvent = await BettingModel.findOne({
         where: { status: true },
         order: [["createdAt", "DESC"]],
       });
       if (!bettingEvent) {
-        socket.emit('joinError', { message: 'Betting event not found or not active.' });
+        socket.emit('joinError', { message: 'Betting not active.' });
         return;
       }
       // Create an entry in the bettingUser table
-      await BettingUserModel.create({
+      const bettingUserData = await BettingUserModel.create({
         user_id: userId,
-        betting_id: bettingEvent.id
+        betting_id: bettingEvent.id,
+        amount
       });
-      socket.emit('joinSuccess', { message: 'Successfully joined the betting event.' });
+      // Emit the betting event to the connected user
+      await UserModel.update(
+        {
+          total_balance: Sequelize.literal(`total_balance - ${amount}`),
+          total_bet: Sequelize.literal('total_bet + 1')
+        },
+        {
+          where: { id: userId }
+        }
+      );
+      await BettingModel.update(
+        {
+          amount: Sequelize.literal(`amount + ${amount}`),
+          t_users: Sequelize.literal(`t_users + 1`)
+        },
+        {
+          where: { id: bettingEvent.id }
+        }
+      );
+      socket.emit('joinSuccess', { message: 'Successfully joined the betting event.', data: bettingUserData });
     } catch (error) {
       console.error('Error joining betting event:', error);
       socket.emit('joinError', { message: 'An error occurred while joining the betting event.' });
+    }
+  });
+
+  socket.on("exitBettingEvent", async (data) => {
+    try {
+      const { userId, bettingId, out_x } = data;
+      // Fetch the betting event with status true and the provided ID
+      const bettingEvent = await BettingModel.findOne({
+        where: { status: true, id: bettingId },
+      });
+      if (!bettingEvent) {
+        socket.emit('exitError', { message: 'Betting not active.' });
+        return;
+      }
+      // Fetch the betting user data
+      const bettingUserData = await BettingUserModel.findOne({
+        where: { user_id: userId, betting_id: bettingId },
+      });
+      if (!bettingUserData) {
+        socket.emit('exitError', {
+          message: 'You are not participating in this betting event.'
+        });
+        return;
+      }
+      // Update the user's balance and bets
+      await UserModel.update(
+        {
+          total_balance: Sequelize.literal(`total_balance + ${bettingUserData.amount * out_x}`),
+        },
+        {
+          where: { id: userId }
+        }
+      );
+      // Update the betting event's total balance and bets
+      await BettingModel.update(
+        {
+          out_amount: Sequelize.literal(`out_amount + ${bettingUserData.amount * out_x}`)
+        },
+        {
+          where: { id: bettingEvent.id }
+        }
+      );
+      // Emit a message to the client
+      socket.emit('exitSuccess', { message: 'You have successfully exited the betting event.' });
+    } catch (error) {
+      console.error(error);
+      socket.emit('exitError', {
+        message: 'An error occurred while exiting the betting event.'
+      });
+    }
+  });
+
+  socket.on("walletEvent", async (data) => {
+    try {
+      const { userId } = data;
+      const user = await UserModel.findOne({ where: { id: userId }, attributes: ['total_balance', 'total_deposit', 'total_withdraw', 'total_bet'], });
+      if (!user) {
+        socket.emit('walletError', { message: 'User not found.' });
+        return;
+      }
+      socket.emit('walletSuccess', {
+        message: 'Wallet updated successfully.',
+        data: user
+      });
+    } catch (error) {
+      console.error('Error updating wallet:', error);
+      socket.emit('walletError', { message: 'An error occurred while updating the wallet.' });
     }
   });
 
