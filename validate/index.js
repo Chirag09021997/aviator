@@ -61,7 +61,7 @@ const gameStrategy = Joi.object({
 
 const setting = Joi.object({
     s_key: Joi.string().required(),
-    s_value: Joi.number().min(1).max(50000).precision(2).required(),
+    s_value: Joi.number().min(0).max(50000).precision(2).required(),
 });
 
 module.exports = { registerValidate, loginValidate, betSuggestion, cashPlan, usersRegister, upiRegister, paymentsDeposit, paymentsWithdraw, gameStrategy, setting };

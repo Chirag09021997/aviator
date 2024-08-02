@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { betting: BettingModel, gameStrategy: GameStrategyModel, settings: SettingModel } = require('../models/index');
+const { betting: BettingModel, gameStrategy: GameStrategyModel } = require('../models/index');
 const { methods: commonService } = require('../services/index');
 
 const getRandomFloat = () => {
@@ -38,11 +38,12 @@ const strategyBettingCreate = async (gameStrategyId = null) => {
         result: game_option,
         game_strategy_id: id,
     });
-
 };
 
+const PendingTime = Number(process.env.GAME_PENDING_TIME) || 5;
+
 cron.schedule('* * * * * *', async () => {
-    console.log(`cron job testing... Time ::  ${Date()}`);
+    // console.log(`cron job testing... Time ::  ${Date()}`);
     try {
         const lastBetRecord = await commonService.get(BettingModel, {
             attributes: ["id", "game_strategy_id", "result", "status", "created_at"],
@@ -52,14 +53,12 @@ cron.schedule('* * * * * *', async () => {
             const { id, game_strategy_id, result, status, created_at } = lastBetRecord;
             const newGameTime = new Date(created_at);
             const currentDateTime = new Date();
-            // console.log("game_strategy_id => ", game_strategy_id);
-            // console.log("created_at => ", newGameTime);
-            // console.log("result => ", result);
-            newGameTime.setSeconds(newGameTime.getSeconds() + (result * 10));
-            // console.log("newGameTime => ", newGameTime);
-
+            newGameTime.setSeconds(newGameTime.getSeconds() + ((result * 10) + PendingTime));
+            // const differenceInSeconds = Math.floor((currentDateTime - newGameTime) / 1000);
+            // console.log("newGameTime=>", newGameTime);
+            // console.log("currentDateTime=>", currentDateTime);
+            // console.log("differenceInSeconds=>", differenceInSeconds);
             if (status) {
-                // console.log(`status:true ::newGameTime=>${newGameTime} :: currentDateTime => ${currentDateTime}`);
                 if (newGameTime < currentDateTime) {
                     // console.log(`true true  true ::newGameTime=>${newGameTime} :: currentDateTime => ${currentDateTime}`);
                     await commonService.update(BettingModel, { where: { id } }, { status: false });

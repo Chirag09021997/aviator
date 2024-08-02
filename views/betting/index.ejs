@@ -30,6 +30,7 @@
                                     <th>Game Strategy Id</th>
                                     <th>Result</th>
                                     <th>CreatedAt</th>
+                                    <th>UpdatedAt</th>
                                 </tr>
                             </thead>
                         </table>
@@ -66,13 +67,14 @@
                             { "data": "game_strategy_id" },
                             { "data": "result" },
                             { "data": "created_at" },
+                            { "data": "updated_at" },
                         ],
                         pageLength: 50,
                     });
 
                     setInterval(() => {
                         $('#indexData').DataTable().ajax.reload();
-                    }, 300000);
+                    }, 3000);
 
                     $('#indexData').on('click', '.crashBetting', function () {
                         var id = $(this).data('id');

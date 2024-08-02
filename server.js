@@ -49,6 +49,7 @@ app.use('/', indexRouter);
 app.use('/api', apiRouter);
 
 require('./cronJob/index');
+const PendingTime = Number(process.env.GAME_PENDING_TIME) || 5;
 
 const { betting: BettingModel, bettingUser: BettingUserModel, users: UserModel, Sequelize } = require('./models/index');
 const connectedUsers = new Map();
@@ -56,19 +57,46 @@ let bettingInterval = null;
 
 // Function to fetch and emit the latest betting event
 const sendBettingEvent = async () => {
+  let bettingUsersData = null;
   try {
     const latestBettingEvent = await BettingModel.findOne({
-      attributes: ['id', 'status'],
-      order: [["createdAt", "DESC"]],
+      attributes: ['id', 'status', 'created_at'],
+      order: [["created_at", "DESC"]],
     });
+
+    if (latestBettingEvent) {
+      bettingUsersData = await BettingUserModel.findAll({
+        attributes: ["amount", "out_amount"],
+        where: {
+          betting_id: latestBettingEvent.id
+        },
+        order: [["updated_at", "DESC"]],
+      });
+    }
+
+    const newGameTime = new Date(latestBettingEvent.created_at);
+    const currentDateTime = new Date();
+    newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
+    const differenceInSeconds = Math.floor((currentDateTime - newGameTime) / 1000);
 
     // Emit the event to all connected users
     connectedUsers.forEach((userData, socketId) => {
       const socket = userData.socket;
       socket.emit('bettingData', {
         message: 'aviator status.',
-        latestBettingEvent
+        data: {
+          id: latestBettingEvent.id,
+          status: latestBettingEvent.status,
+          bet_pending_time: differenceInSeconds < 0 ? Math.abs(differenceInSeconds) : 0,
+          bet_x_time: differenceInSeconds > 0 ? (differenceInSeconds / 10) : 0,
+        }
       });
+      if (differenceInSeconds > 0 && bettingUsersData.length > 0) {
+        socket.emit('betOutUserList', {
+          message: 'betting win user list.',
+          data: bettingUsersData
+        });
+      }
     });
   } catch (error) {
     console.error('Error fetching betting event:', error);
@@ -90,7 +118,7 @@ const stopBettingInterval = () => {
 
 // Socket Code Start 
 io.on("connection", (socket) => {
-  console.log("socket connected");
+  // console.log("socket connected");
   connectedUsers.set(socket.id, { socket });
 
   if (connectedUsers.size === 1) {
@@ -103,7 +131,7 @@ io.on("connection", (socket) => {
       // Fetch the betting event with status true and the provided ID
       const bettingEvent = await BettingModel.findOne({
         where: { status: true },
-        order: [["createdAt", "DESC"]],
+        order: [["created_at", "DESC"]],
       });
       if (!bettingEvent) {
         socket.emit('joinError', { message: 'Betting not active.' });
@@ -152,6 +180,14 @@ io.on("connection", (socket) => {
         socket.emit('exitError', { message: 'Betting not active.' });
         return;
       }
+      const newGameTime = new Date(bettingEvent.created_at);
+      const currentDateTime = new Date();
+      newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
+      if (currentDateTime < newGameTime) {
+        socket.emit('exitError', { message: 'Betting not exist.' });
+        return;
+      }
+
       // Fetch the betting user data
       const bettingUserData = await BettingUserModel.findOne({
         where: { user_id: userId, betting_id: bettingId },
@@ -162,6 +198,7 @@ io.on("connection", (socket) => {
         });
         return;
       }
+
       // Update the user's balance and bets
       await UserModel.update(
         {
@@ -210,7 +247,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     connectedUsers.delete(socket.id);
-    console.log("disconnect socket io.");
+    // console.log("disconnect socket io.");
     if (connectedUsers.size <= 0) {
       stopBettingInterval();
     }

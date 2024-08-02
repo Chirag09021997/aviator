@@ -21,7 +21,7 @@ const getData = async (req, res) => {
     try {
         // Fetch betting records with aggregation
         const data = await sequelize.query(
-            `SELECT  betting.id, betting.amount, betting.out_amount,  betting.t_users, betting.game_strategy_id, betting.result, betting.status, betting.created_at, COALESCE(SUM(betting_users.amount), 0) AS total_amount, COALESCE(SUM(betting_users.out_amount), 0) AS total_out_amount,COUNT(betting_users.id) AS total_users FROM bettings AS betting LEFT JOIN betting_users AS betting_users ON betting.id = betting_users.betting_id GROUP BY betting.id ORDER BY betting.created_at DESC LIMIT :start, :length`,
+            `SELECT  betting.id, betting.amount, betting.out_amount,  betting.t_users, betting.game_strategy_id, betting.result, betting.status, betting.created_at, betting.updated_at, COALESCE(SUM(betting_users.amount), 0) AS total_amount, COALESCE(SUM(betting_users.out_amount), 0) AS total_out_amount,COUNT(betting_users.id) AS total_users FROM bettings AS betting LEFT JOIN betting_users AS betting_users ON betting.id = betting_users.betting_id GROUP BY betting.id ORDER BY betting.created_at DESC LIMIT :start, :length`,
             {
                 replacements: { start: start, length: length },
                 type: sequelize.QueryTypes.SELECT
@@ -50,7 +50,7 @@ const getData = async (req, res) => {
 
 
 const crashBetting = async (req, res) => {
-    console.log("Create Batting called =>", req.body);
+    // console.log("Create Batting called =>", req.body);
     const id = req?.params?.id;
     if (!id) {
         return res.status(400).render("error", { error: "Bad Request" });

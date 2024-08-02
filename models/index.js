@@ -17,6 +17,7 @@ const sequelize = new Sequelize(
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",
     },
+    timezone: '+05:30' // Set timezone to Asia/Kolkata (IST)
   }
 );
 

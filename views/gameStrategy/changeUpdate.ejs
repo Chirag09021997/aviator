@@ -68,9 +68,9 @@
 
             <script>
                 $(document).ready(function () {
-                    console.log("document ready.");
+                    // console.log("document ready.");
                     let gameOptionCount = parseInt('<%= getData ? getData.length : 0 %>', 0);
-                    console.log("gameOptionCount =>", typeof gameOptionCount, gameOptionCount);
+                    // console.log("gameOptionCount =>", typeof gameOptionCount, gameOptionCount);
 
                     $('.gameAddBtn').click(function () {
                         const gameAddInput = parseInt($('#gameAdd').val(), 10);

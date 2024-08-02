@@ -26,8 +26,8 @@ const UserRegister = async (req, res) => {
 
         const userDetail = await commonService.get(UserRegisterModel, { where: { mobile_no } });
         if (userDetail) {
-            return res.status(404).json({
-                status: false,
+            return res.status(200).json({
+                status: true,
                 message: "User all ready registered.",
                 data: userDetail,
                 cashPlan: cashPlanDetails,
@@ -43,7 +43,7 @@ const UserRegister = async (req, res) => {
             betSuggestPlans: betSuggestPlansDetails
         });
     } catch (error) {
-        console.log("UserRegister Error => ", error);
+        console.error("UserRegister Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 }
@@ -83,14 +83,14 @@ const paymentDeposit = async (req, res) => {
             data: paymentDetail
         });
     } catch (error) {
-        console.log("paymentDeposit Error => ", error);
+        console.error("paymentDeposit Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };
 
 const paymentWithdraw = async (req, res) => {
     const { mobile_no, upi_id, amount } = req.body;
-    console.log("payment Withdraw =>", req.body);
+    // console.log("payment Withdraw =>", req.body);
     try {
         const { error } = PaymentWithdrawValidate.validate(req.body, {
             abortEarly: false,
@@ -119,7 +119,7 @@ const paymentWithdraw = async (req, res) => {
             data: details
         });
     } catch (error) {
-        console.log("paymentWithdraw Error => ", error);
+        console.error("paymentWithdraw Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };
@@ -155,7 +155,7 @@ const walletList = async (req, res) => {
             data: details
         });
     } catch (error) {
-        console.log("walletList Error => ", error);
+        console.error("walletList Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };
@@ -191,7 +191,7 @@ const myBet = async (req, res) => {
             data: details
         });
     } catch (error) {
-        console.log("myBet Error => ", error);
+        console.error("myBet Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };
@@ -207,7 +207,7 @@ const cashPlans = async (req, res) => {
             data: details
         });
     } catch (error) {
-        console.log("cashPlans Error => ", error);
+        console.error("cashPlans Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };
@@ -223,7 +223,7 @@ const betSuggestPlans = async (req, res) => {
             data: details
         });
     } catch (error) {
-        console.log("betSuggestPlans Error => ", error);
+        console.error("betSuggestPlans Error => ", error);
         res.status(500).json({ status: false, message: error.message });
     }
 };

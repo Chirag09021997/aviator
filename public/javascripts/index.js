@@ -19,7 +19,7 @@ $(document).ready(function () {
     });
 
     $('.deleteRecord').click(function () {
-        console.log("called deleted records");
+        // console.log("called deleted records");
         var id = $(this).data('id');
         var url = $(this).data('url');
         if (confirm('Are you sure you want to delete this record?')) {
@@ -44,7 +44,7 @@ $(document).ready(function () {
             type: 'PUT',
             success: function (result) {
                 // location.reload();
-                console.log("result =>", result);
+                // console.log("result =>", result);
             },
             error: function (err) {
                 console.error('Error changing status:', err);
