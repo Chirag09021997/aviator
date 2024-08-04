@@ -228,4 +228,8 @@ const betSuggestPlans = async (req, res) => {
     }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans };
+const leaderBoardList = async (req, res) => {
+    res.status(200).json({ status: true, message: "LeaderBoard Api Data..." });
+};
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList };
