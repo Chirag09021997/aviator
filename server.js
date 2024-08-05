@@ -105,6 +105,18 @@ const sendBettingEvent = async () => {
           data: bettingUsersData
         });
       }
+      if (differenceInSeconds == 0) {
+        socket.emit('betStart', {
+          message: 'Betting starting...',
+          status: true
+        });
+      }
+      if (Math.abs(differenceInSeconds) == PendingTime || Math.abs(differenceInSeconds) == (PendingTime - 1)) {
+        socket.emit('betCrash', {
+          message: 'Betting crashed...',
+          status: true
+        });
+      }
     });
   } catch (error) {
     console.error('Error fetching betting event:', error);
