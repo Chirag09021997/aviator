@@ -39,6 +39,9 @@ db.gameStrategy = require('./gameStrategy.model')(sequelize, Sequelize, DataType
 //  RelationShip Start
 db.betting.hasMany(db.bettingUser, { foreignKey: "betting_id" });
 db.bettingUser.belongsTo(db.betting, { foreignKey: "betting_id" });
+
+db.users.hasMany(db.bettingUser, { foreignKey: "user_id" });
+db.bettingUser.belongsTo(db.users, { foreignKey: "user_id" });
 //  RelationShip End
 
 module.exports = db;

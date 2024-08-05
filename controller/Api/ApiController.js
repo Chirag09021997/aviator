@@ -1,5 +1,5 @@
 const { methods: commonService } = require("../../services/index");
-const { payments: PaymentsModel, users: UserRegisterModel, bettingUser: BettingUserModel, cashPlans: CashPlanModel, betSuggestPlans: betSuggestPlansModel } = require('../../models/index');
+const { payments: PaymentsModel, users: UserRegisterModel, bettingUser: BettingUserModel, cashPlans: CashPlanModel, betSuggestPlans: betSuggestPlansModel, betting: BettingModel, upiRegisters: UpiRegistersModel, sequelize } = require('../../models/index');
 const { usersRegister: UserRegisterValidate, paymentDeposit: PaymentDepositValidate, paymentWithdraw: PaymentWithdrawValidate, wallet: WalletValidate, myBet: MyBetValidate } = require("../../validate/api");
 
 const UserRegister = async (req, res) => {
@@ -24,6 +24,14 @@ const UserRegister = async (req, res) => {
             attributes: ["amount"]
         });
 
+        const upiRegisterListDetail = await commonService.getAll(UpiRegistersModel, {
+            attributes: [
+                "upi_id",
+                [sequelize.literal(`CONCAT('${process.env.BASE_URL}/images/', barcode_photo)`), 'barcode_photo']
+            ],
+            where: { status: "Active" }
+        });
+
         const userDetail = await commonService.get(UserRegisterModel, { where: { mobile_no } });
         if (userDetail) {
             return res.status(200).json({
@@ -31,7 +39,8 @@ const UserRegister = async (req, res) => {
                 message: "User all ready registered.",
                 data: userDetail,
                 cashPlan: cashPlanDetails,
-                betSuggestPlans: betSuggestPlansDetails
+                betSuggestPlans: betSuggestPlansDetails,
+                upiRegisterList: upiRegisterListDetail
             });
         }
         const user = await commonService.create(UserRegisterModel, { mobile_no, upi_id });
@@ -40,7 +49,8 @@ const UserRegister = async (req, res) => {
             message: "User created successfully.",
             data: user,
             cashPlan: cashPlanDetails,
-            betSuggestPlans: betSuggestPlansDetails
+            betSuggestPlans: betSuggestPlansDetails,
+            upiRegisterList: upiRegisterListDetail
         });
     } catch (error) {
         console.error("UserRegister Error => ", error);
@@ -229,7 +239,40 @@ const betSuggestPlans = async (req, res) => {
 };
 
 const leaderBoardList = async (req, res) => {
-    res.status(200).json({ status: true, message: "LeaderBoard Api Data..." });
+    try {
+        const details = await commonService.getAll(PaymentsModel, {
+            attributes: ["mobile_no", "amount"],
+            where: { pay_type: "Deposit" },
+            order: [["amount", "DESC"]],
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Get all leader boards records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.error("leaderBoardList Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList };
+const last10BetX = async (req, res) => {
+    try {
+        const details = await commonService.getAll(BettingModel, {
+            attributes: ["result"],
+            order: [["updated_at", "DESC"]],
+            offset: 1,
+            limit: 10
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Get last 10 betX records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.error("last10BetX Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+};
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList, last10BetX };

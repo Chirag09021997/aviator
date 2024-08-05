@@ -42,17 +42,17 @@ const paymentsDeposit = Joi.object({
     upi_id: Joi.string().required(),
     amount: Joi.number().integer().min(1).max(50000).required(),
     status: Joi.string().valid('Pending', 'Rejected', 'Complete').required(),
-    transaction_no: Joi.string().required(),
-    note: Joi.string().optional(),
+    transaction_no: Joi.string().empty("").optional(),
+    note: Joi.string().empty("").optional(),
 });
 
 const paymentsWithdraw = Joi.object({
     mobile_no: Joi.string().required(),
-    upi_id: Joi.string().required(),
+    upi_id: Joi.string().allow(""),
     amount: Joi.number().integer().min(1).max(50000).required(),
     status: Joi.string().valid('Pending', 'Rejected', 'Complete').required(),
-    transaction_no: Joi.string().allow(""),
-    note: Joi.string().optional(),
+    transaction_no: Joi.string().allow("").optional(),
+    note: Joi.string().allow("").optional(),
 });
 
 const gameStrategy = Joi.object({

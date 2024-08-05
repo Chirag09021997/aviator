@@ -8,6 +8,7 @@ const http = require("http");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { Server } = require('socket.io');
+const { Op, literal } = require('sequelize');
 require("dotenv").config();
 
 const indexRouter = require('./routes/index');
@@ -68,8 +69,15 @@ const sendBettingEvent = async () => {
       bettingUsersData = await BettingUserModel.findAll({
         attributes: ["amount", "out_amount"],
         where: {
-          betting_id: latestBettingEvent.id
+          betting_id: latestBettingEvent.id,
+          amount: {
+            [Op.gt]: literal('out_amount') // Filters rows where 'amount' is greater than 'out_amount'
+          }
         },
+        include: [{
+          model: UserModel,
+          attributes: ['mobile_no']
+        }],
         order: [["updated_at", "DESC"]],
       });
     }
@@ -91,7 +99,7 @@ const sendBettingEvent = async () => {
           bet_x_time: differenceInSeconds > 0 ? (differenceInSeconds / 10) : 0,
         }
       });
-      if (differenceInSeconds > 0 && bettingUsersData.length > 0) {
+      if (differenceInSeconds > 0 && bettingUsersData.length >= 0) {
         socket.emit('betOutUserList', {
           message: 'betting win user list.',
           data: bettingUsersData
@@ -127,7 +135,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinBettingEvent", async (data) => {
     try {
-      const { userId, amount = 10 } = data;
+      const { userId, amount = 5 } = data;
       // Fetch the betting event with status true and the provided ID
       const bettingEvent = await BettingModel.findOne({
         where: { status: true },
@@ -135,6 +143,13 @@ io.on("connection", (socket) => {
       });
       if (!bettingEvent) {
         socket.emit('joinError', { message: 'Betting not active.' });
+        return;
+      }
+      const newGameTime = new Date(bettingEvent.created_at);
+      const currentDateTime = new Date();
+      newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
+      if (currentDateTime > newGameTime) {
+        socket.emit('exitError', { message: 'Betting join time out.' });
         return;
       }
       // Create an entry in the bettingUser table
@@ -171,7 +186,7 @@ io.on("connection", (socket) => {
 
   socket.on("exitBettingEvent", async (data) => {
     try {
-      const { userId, bettingId, out_x } = data;
+      const { userId, bettingId, out_x = 0 } = data;
       // Fetch the betting event with status true and the provided ID
       const bettingEvent = await BettingModel.findOne({
         where: { status: true, id: bettingId },
@@ -182,7 +197,7 @@ io.on("connection", (socket) => {
       }
       const newGameTime = new Date(bettingEvent.created_at);
       const currentDateTime = new Date();
-      newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
+      // newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
       if (currentDateTime < newGameTime) {
         socket.emit('exitError', { message: 'Betting not exist.' });
         return;
