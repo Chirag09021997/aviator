@@ -96,7 +96,7 @@ const sendBettingEvent = async () => {
           id: latestBettingEvent.id,
           status: latestBettingEvent.status,
           bet_pending_time: differenceInSeconds < 0 ? Math.abs(differenceInSeconds) : 0,
-          bet_x_time: differenceInSeconds > 0 ? (differenceInSeconds / 10) : 0,
+          bet_x_time: differenceInSeconds > 0 ? (differenceInSeconds / 5) : 0,
         }
       });
       if (differenceInSeconds > 0 && bettingUsersData.length >= 0) {
@@ -111,7 +111,7 @@ const sendBettingEvent = async () => {
           status: true
         });
       }
-      if (Math.abs(differenceInSeconds) == PendingTime || Math.abs(differenceInSeconds) == (PendingTime - 1)) {
+      if (differenceInSeconds == -PendingTime || differenceInSeconds == (-PendingTime - 1)) {
         socket.emit('betCrash', {
           message: 'Betting crashed...',
           status: true
@@ -125,7 +125,7 @@ const sendBettingEvent = async () => {
 
 const startBettingInterval = () => {
   if (!bettingInterval) {
-    bettingInterval = setInterval(sendBettingEvent, 1000);
+    bettingInterval = setInterval(sendBettingEvent, 500);
   }
 };
 

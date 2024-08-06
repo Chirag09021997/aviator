@@ -53,7 +53,7 @@ cron.schedule('* * * * * *', async () => {
             const { id, game_strategy_id, result, status, created_at } = lastBetRecord;
             const newGameTime = new Date(created_at);
             const currentDateTime = new Date();
-            newGameTime.setSeconds(newGameTime.getSeconds() + ((result * 10) + PendingTime));
+            newGameTime.setSeconds(newGameTime.getSeconds() + ((result * 5) + PendingTime));
             // const differenceInSeconds = Math.floor((currentDateTime - newGameTime) / 1000);
             // console.log("newGameTime=>", newGameTime);
             // console.log("currentDateTime=>", currentDateTime);
