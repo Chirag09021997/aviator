@@ -4,7 +4,10 @@ const { users: UsersModel } = require('../models');
 const { usersRegister: UserRegisterValidate } = require('../validate/index');
 
 const index = async (req, res) => {
-    const getData = await commonService.getAll(UsersModel, { attributes: ["id", "mobile_no", "upi_id", "total_balance", "total_deposit", "total_withdraw", "total_bet", "status"] });
+    const getData = await commonService.getAll(UsersModel, {
+        attributes: ["id", "mobile_no", "upi_id", "total_balance", "total_deposit", "total_withdraw", "total_bet", "status"],
+        order: [["created_at", "DESC"]]
+    });
     renderPage(req, res, "users/index", {
         title: "Users",
         activePage: "users",

@@ -1,6 +1,6 @@
 const { methods: commonService } = require('../services/index');
 const { renderPage, cmDeleteRecord } = require("./commonController");
-const { payments: PaymentsModel } = require('../models');
+const { payments: PaymentsModel, users: UserModel } = require('../models');
 const { paymentsWithdraw: PaymentWithdrawValidate } = require('../validate/index');
 const fs = require('fs');
 
@@ -9,7 +9,8 @@ const index = async (req, res) => {
         attributes: ["id", "mobile_no", "upi_id", "amount", "photo", "transaction_no", "status"],
         where: {
             pay_type: "Withdraw"
-        }
+        },
+        order: [["created_at", "DESC"]]
     });
     renderPage(req, res, "paymentWithdraw/index", {
         title: "Payments Withdraw",
@@ -94,6 +95,18 @@ const update = async (req, res) => {
         };
         if (detail) {
             try {
+                const UserDetail = await commonService.get(UserModel, { where: { mobile_no } });
+                if (UserDetail) {
+                    if (detail.status !== 'Rejected' && status === 'Rejected') {
+                        UserDetail.total_balance += parseFloat(amount);
+                        UserDetail.total_withdraw += parseFloat(amount);
+                        await UserDetail.save();  // Save the updated balance
+                    } else if (detail.status === 'Rejected' && status !== 'Rejected') {
+                        UserDetail.total_balance -= parseFloat(amount);
+                        UserDetail.total_withdraw -= parseFloat(amount);
+                        await UserDetail.save();  // Save the updated balance
+                    }
+                }
                 const update = await commonService.update(PaymentsModel, {
                     where: { id, pay_type: "Withdraw" }
                 }, obj);

@@ -114,14 +114,18 @@ const paymentWithdraw = async (req, res) => {
         }
 
         // Check if the user is registered
-        const user = await commonService.get(UserRegisterModel, { where: { mobile_no } });
-        if (!user) {
+        const UserDetail = await commonService.get(UserRegisterModel, { where: { mobile_no } });
+        if (!UserDetail) {
             return res.status(400).json({ status: false, message: "User not registered. Please register first." });
         }
 
         const details = await commonService.create(PaymentsModel, {
             mobile_no, upi_id, amount, pay_type: "Withdraw"
         });
+
+        UserDetail.total_balance -= parseFloat(amount);
+        UserDetail.total_withdraw -= parseFloat(amount);
+        await UserDetail.save();  // Save the updated balance
 
         return res.status(201).json({
             status: true,

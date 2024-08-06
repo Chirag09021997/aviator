@@ -1,6 +1,6 @@
 const { methods: commonService } = require('../services/index');
 const { renderPage, cmDeleteRecord } = require("./commonController");
-const { payments: PaymentsModel } = require('../models');
+const { payments: PaymentsModel, users: UserModel } = require('../models');
 const { paymentsDeposit: PaymentDepositValidate } = require('../validate/index');
 const fs = require('fs');
 const path = require('path');
@@ -10,7 +10,8 @@ const index = async (req, res) => {
         attributes: ["id", "mobile_no", "upi_id", "amount", "photo", "transaction_no", "status"],
         where: {
             pay_type: "Deposit"
-        }
+        },
+        order: [["created_at", "DESC"]]
     });
     //     type: DataTypes.ENUM("Withdraw", "Deposit"),
     renderPage(req, res, "paymentDeposit/index", {
@@ -96,6 +97,18 @@ const update = async (req, res) => {
         };
         if (detail) {
             try {
+                const UserDetail = await commonService.get(UserModel, { where: { mobile_no } });
+                if (UserDetail) {
+                    if (detail.status !== 'Complete' && status === "Complete") {
+                        UserDetail.total_balance += parseFloat(amount);
+                        UserDetail.total_deposit += parseFloat(amount);
+                        await UserDetail.save();  // Save the updated balance
+                    } else if (detail.status === 'Complete' && status !== "Complete") {
+                        UserDetail.total_balance -= parseFloat(amount);
+                        UserDetail.total_deposit -= parseFloat(amount);
+                        await UserDetail.save();  // Save the updated balance                       
+                    }
+                }
                 const update = await commonService.update(PaymentsModel, {
                     where: { id, pay_type: "Deposit" }
                 }, obj);
