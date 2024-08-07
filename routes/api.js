@@ -7,6 +7,7 @@ router.post('/register', ApiController.UserRegister);
 router.post("/payment-deposit", upload.single('photo'), ApiController.paymentDeposit);
 router.post("/payment-withdraw", ApiController.paymentWithdraw);
 router.post("/wallet", ApiController.walletList);
+router.post("/wallet-balance", ApiController.walletBalance);
 router.post("/my-bet", ApiController.myBet);
 router.get("/cash-plan", ApiController.cashPlans);
 router.get("/bet-suggest-plans", ApiController.betSuggestPlans);

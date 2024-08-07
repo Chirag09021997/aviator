@@ -280,4 +280,37 @@ const last10BetX = async (req, res) => {
     }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList, last10BetX };
+const walletBalance = async (req, res) => {
+    const { mobile_no } = req.body;
+    try {
+        const { error } = WalletValidate.validate(req.body, {
+            abortEarly: false,
+        });
+        if (error) {
+            const errors = error.details.reduce((acc, err) => {
+                acc[err.context.key] = err.message;
+                return acc;
+            }, {});
+            return res.status(400).json({ status: false, message: "Validation Errors.", errors });
+        }
+
+        // Check if the user is registered
+        const user = await commonService.get(UserRegisterModel, {
+            attributes: ["mobile_no", "upi_id", "total_balance", "total_deposit", "total_withdraw", "total_bet"],
+            where: { mobile_no }
+        });
+        if (!user) {
+            return res.status(400).json({ status: false, message: "User not registered. Please register first." });
+        }
+        return res.status(201).json({
+            status: true,
+            message: "Get wallet balance records successFully.",
+            data: user
+        });
+    } catch (error) {
+        console.error("walletBalance Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+};
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList, last10BetX, walletBalance };
