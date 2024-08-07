@@ -244,6 +244,8 @@ io.on("connection", (socket) => {
           where: { id: bettingEvent.id }
         }
       );
+      bettingUserData.out_amount = (bettingUserData.amount * out_x);
+      await bettingUserData.save();
       // Emit a message to the client
       socket.emit('exitSuccess', { message: 'You have successfully exited the betting event.' });
     } catch (error) {

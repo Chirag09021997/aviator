@@ -197,6 +197,7 @@ const myBet = async (req, res) => {
         const details = await commonService.getAll(BettingUserModel, {
             attributes: ["betting_id", "amount", "out_amount", "created_at"],
             where: { user_id: user.id },
+            order: [["created_at", "DESC"]],
         });
 
         return res.status(200).json({
