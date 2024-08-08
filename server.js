@@ -39,6 +39,9 @@ const synchronizeAndSeed = async () => {
     // await db.sequelize.sync();
     await require('./seeder/index').settingSeed();
     await require('./seeder/index').gameStrategySeed();
+    await require('./seeder/index').UpiRegisterSeed();
+    await require('./seeder/index').betSuggestPlansSeed();
+    await require('./seeder/index').cashPlanSeed();
   } catch (error) {
     console.error("Error during synchronization and seeding:", error);
   }
@@ -51,6 +54,7 @@ app.use('/api', apiRouter);
 
 require('./cronJob/index');
 const PendingTime = Number(process.env.GAME_PENDING_TIME) || 5;
+const FlewAway = Number(process.env.FLEW_AWAY) || 3;
 
 const { betting: BettingModel, bettingUser: BettingUserModel, users: UserModel, Sequelize } = require('./models/index');
 const connectedUsers = new Map();
@@ -67,7 +71,7 @@ const sendBettingEvent = async () => {
 
     if (latestBettingEvent) {
       bettingUsersData = await BettingUserModel.findAll({
-        attributes: ["amount", "out_amount"],
+        attributes: ["amount", "out_amount", "out_x", "position"],
         where: {
           betting_id: latestBettingEvent.id,
           amount: {
@@ -84,7 +88,7 @@ const sendBettingEvent = async () => {
 
     const newGameTime = new Date(latestBettingEvent.created_at);
     const currentDateTime = new Date();
-    newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime);
+    newGameTime.setSeconds(newGameTime.getSeconds() + PendingTime + FlewAway);
     const differenceInSeconds = Math.floor((currentDateTime - newGameTime) / 1000);
 
     // Emit the event to all connected users
@@ -148,8 +152,12 @@ io.on("connection", (socket) => {
 
   socket.on("joinBettingEvent", async (data) => {
     try {
-      const { userId, amount = 5 } = data;
+      const { userId, amount = 5, position = 1 } = data;
       // Fetch the betting event with status true and the provided ID
+      if (position != 1 && position != 2) {
+        socket.emit('joinError', { message: 'Position only 2 limit.' });
+        return;
+      }
       const bettingEvent = await BettingModel.findOne({
         where: { status: true },
         order: [["created_at", "DESC"]],
@@ -169,7 +177,8 @@ io.on("connection", (socket) => {
       const bettingUserData = await BettingUserModel.create({
         user_id: userId,
         betting_id: bettingEvent.id,
-        amount
+        amount,
+        position
       });
       // Emit the betting event to the connected user
       await UserModel.update(
@@ -199,7 +208,11 @@ io.on("connection", (socket) => {
 
   socket.on("exitBettingEvent", async (data) => {
     try {
-      const { userId, bettingId, out_x = 0 } = data;
+      const { userId, bettingId, out_x = 0, position = 1 } = data;
+      if (position != 1 && position != 2) {
+        socket.emit('exitError', { message: 'Position only 2 limit.' });
+        return;
+      }
       // Fetch the betting event with status true and the provided ID
       const bettingEvent = await BettingModel.findOne({
         where: { status: true, id: bettingId },
@@ -218,7 +231,7 @@ io.on("connection", (socket) => {
 
       // Fetch the betting user data
       const bettingUserData = await BettingUserModel.findOne({
-        where: { user_id: userId, betting_id: bettingId },
+        where: { user_id: userId, betting_id: bettingId, position: position },
       });
       if (!bettingUserData) {
         socket.emit('exitError', {
@@ -246,6 +259,7 @@ io.on("connection", (socket) => {
         }
       );
       bettingUserData.out_amount = (bettingUserData.amount * out_x);
+      bettingUserData.out_x = out_x;
       await bettingUserData.save();
       // Emit a message to the client
       socket.emit('exitSuccess', { message: 'You have successfully exited the betting event.' });

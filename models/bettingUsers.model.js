@@ -24,6 +24,14 @@ module.exports = (sequelize, Sequelize, DataTypes) => {
         type: DataTypes.DOUBLE,
         defaultValue: 0.00,
       },
+      out_x: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0.00,
+      },
+      position: {
+        type: DataTypes.INTEGER(1),
+        defaultValue: 1,
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,

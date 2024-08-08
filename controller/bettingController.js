@@ -1,6 +1,6 @@
 const { methods: commonService } = require('../services/index');
 const { renderPage, cmDeleteRecord } = require("./commonController");
-const { betting: BettingModel, bettingUser: BettingUserModel, sequelize } = require('../models');
+const { betting: BettingModel, bettingUser: BettingUserModel, users: UserModel, sequelize } = require('../models');
 
 const index = async (req, res) => {
     const getData = await commonService.getAll(BettingModel, {
@@ -48,7 +48,6 @@ const getData = async (req, res) => {
     }
 };
 
-
 const crashBetting = async (req, res) => {
     // console.log("Create Batting called =>", req.body);
     const id = req?.params?.id;
@@ -80,4 +79,63 @@ const crashBetting = async (req, res) => {
     }
 };
 
-module.exports = { index, getData, crashBetting };
+const show = async (req, res) => {
+    const id = req?.params?.id;
+    try {
+        const detail = await commonService.get(BettingModel, { where: { id }, attributes: ["id", "amount", "out_amount", "t_users", "game_strategy_id", "result", "status"] });
+        if (detail) {
+            renderPage(req, res, "betting/show", {
+                title: "Betting",
+                activePage: "betting",
+                formData: detail
+            });
+        } else {
+            res.redirect("/betting");
+        }
+    } catch (error) {
+        res.redirect("/betting");
+    }
+};
+
+const bettingUserList = async (req, res) => {
+    const id = req?.params?.id;
+    const draw = req?.query?.draw;
+    const start = parseInt(req?.query?.start) || 0;
+    const length = parseInt(req?.query?.length) || 10;
+
+    try {
+        // Count total records with the filtering condition
+        const totalRecords = await BettingUserModel.count({
+            where: { betting_id: id }
+        });
+
+        // Fetch paginated data
+        const getData = await commonService.getAll(BettingUserModel, {
+            attributes: ["id", "user_id", "amount", "out_amount", "out_x", "position"],
+            where: { betting_id: id },
+            include: [
+                {
+                    model: UserModel,
+                    attributes: ["mobile_no"]
+                }
+            ],
+            offset: start,
+            limit: length
+        });
+
+        // Prepare the response
+        const response = {
+            draw: draw,
+            recordsTotal: totalRecords,
+            recordsFiltered: totalRecords,
+            data: getData
+        };
+
+        res.json(response);
+    } catch (error) {
+        console.error("Error fetching data: ", error);
+        res.status(500).render("error", { error: "Internal Server Error" });
+    }
+};
+
+module.exports = { index, getData, crashBetting, show, bettingUserList };

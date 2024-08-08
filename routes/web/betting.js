@@ -4,6 +4,7 @@ const bettingController = require("../../controller/bettingController");
 
 router.get("/", bettingController.index);
 router.get("/getData", bettingController.getData);
-// router.get("/:id", bettingController.show);
+router.get("/user-list/:id", bettingController.bettingUserList);
+router.get("/:id", bettingController.show);
 router.delete("/:id", bettingController.crashBetting);
 module.exports = router;

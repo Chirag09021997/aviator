@@ -15,38 +15,121 @@
                     <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5">
                         <div class="flex justify-between items-center">
                             <h1 class="text-xl font-bold">
-                                <a href="/cash-plan">
+                                <a href="/betting">
                                     <i class="fa fa-arrow-left text-white bg-black p-2 rounded-full"
                                         aria-hidden="true"></i>
                                 </a>
-                                <span class="mx-3">Cash Plan Show</span>
+                                <span class="mx-3">Betting Show</span>
                             </h1>
                         </div>
                     </div>
 
-                    <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5">
+                    <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5 grid md:grid-cols-2 gap-5">
                         <div class="mb-5">
                             <label for="amount"
                                 class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount
                                 :</label>
-                            <input type="number" id="amount"
+                            <input type="text" id="amount"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="10" value="<%= formData?.amount %>" required />
+                                value="<%= formData?.amount %>" required />
                         </div>
 
                         <div class="mb-5">
-                            <label for="bonus_amount"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Bonus Amount
+                            <label for="out_amount"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white capitalize">Out
+                                Amount
                                 :</label>
-                            <input type="number" id="bonus_amount"
+                            <input type="text" id="out_amount"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                placeholder="2.3" value="<%= formData?.bonus_amount %>" step="0.01" />
+                                value="<%= formData?.out_amount %>" step="0.01" />
                         </div>
 
+                        <div class="mb-5">
+                            <label for="t_users"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white capitalize">total
+                                users
+                                :</label>
+                            <input type="text" id="t_users"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="2.3" value="<%= formData?.t_users %>" step="0.01" />
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="game_strategy_id"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white capitalize">game
+                                strategy id
+                                :</label>
+                            <input type="text" id="game_strategy_id"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="2.3" value="<%= formData?.game_strategy_id %>" step="0.01" />
+                        </div>
+
+                        <div class="mb-5">
+                            <label for="result"
+                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white capitalize">result
+                                :</label>
+                            <input type="text" id="result"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="2.3" value="<%= formData?.result %>" step="0.01" />
+                        </div>
+                    </div>
+
+                    <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5">
+                        <div class="flex justify-between items-center">
+                            <h1 class="text-xl font-bold">Betting User List</h1>
+                        </div>
+                    </div>
+
+                    <div class="bg-white shadow-md sm:rounded-lg mx-auto p-4 my-5 relative overflow-x-auto">
+                        <table id="indexData" class="display w-full text-sm text-gray-500 ">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 ">
+                                <tr>
+                                    <th>#</th>
+                                    <th>User Id</th>
+                                    <th>Amount</th>
+                                    <th>Out Amount</th>
+                                    <th>Out x</th>
+                                    <th>Position</th>
+                                    <th>CreatedAt</th>
+                                    <th>UpdatedAt</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </section>
 
-            </div>
+                <script>
+                    $(document).ready(function () {
+                        const bettingId = '<%- formData?.id %>';
+                        console.log("bettingId =>", bettingId);
+                        $('#indexData').DataTable({
+                            serverSide: true,
+                            ajax: {
+                                url: `/betting/user-list/${bettingId}`,
+                                type: "GET",
+                                data: function (d) {
+                                    return $.extend({}, d, {});
+                                }
+                            },
+                            columns: [
+                                {
+                                    "data": null,
+                                    "render": function (data, type, row, meta) {
+                                        return meta.row + meta.settings._iDisplayStart + 1;
+                                    }
+                                },
+                                { "data": "user_id" },
+                                { "data": "amount" },
+                                { "data": "out_amount" },
+                                { "data": "out_x" },
+                                { "data": "position" },
+                                { "data": "created_at" },
+                                { "data": "updated_at" },
+                            ],
+                            pageLength: 50,
+                        });
+                    });
+                </script>
 </body>
 
 </html>

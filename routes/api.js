@@ -13,4 +13,5 @@ router.get("/cash-plan", ApiController.cashPlans);
 router.get("/bet-suggest-plans", ApiController.betSuggestPlans);
 router.post("/leader-board", ApiController.leaderBoardList);
 router.post("/last-betx", ApiController.last10BetX);
+router.post("/topx", ApiController.topXApi);
 module.exports = router;

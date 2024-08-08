@@ -195,7 +195,7 @@ const myBet = async (req, res) => {
         }
 
         const details = await commonService.getAll(BettingUserModel, {
-            attributes: ["betting_id", "amount", "out_amount", "created_at"],
+            attributes: ["betting_id", "amount", "out_amount", "out_x", "position", "created_at"],
             where: { user_id: user.id },
             order: [["created_at", "DESC"]],
         });
@@ -313,4 +313,23 @@ const walletBalance = async (req, res) => {
     }
 };
 
-module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList, last10BetX, walletBalance };
+const topXApi = async (req, res) => {
+    try {
+        const details = await commonService.getAll(BettingUserModel, {
+            attributes: ["amount", "out_amount", "out_x", "position"],
+            order: [["out_x", "DESC"]],
+            offset: 1,
+            limit: 100
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Get topX 100 records successFully.",
+            data: details
+        });
+    } catch (error) {
+        console.error("topXApi Error => ", error);
+        res.status(500).json({ status: false, message: error.message });
+    }
+}
+
+module.exports = { UserRegister, paymentDeposit, paymentWithdraw, walletList, myBet, cashPlans, betSuggestPlans, leaderBoardList, last10BetX, walletBalance, topXApi };

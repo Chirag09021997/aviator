@@ -1,4 +1,4 @@
-const { settings: SettingModel, gameStrategy: GameStrategyModel } = require("../models/index");
+const { settings: SettingModel, gameStrategy: GameStrategyModel, cashPlans: CashPlanModel, betSuggestPlans: betSuggestPlansModel, upiRegisters: UpiRegistersModel } = require("../models/index");
 const { createSlug } = require('../controller/commonController');
 const settingSeed = async () => {
     try {
@@ -36,4 +36,50 @@ const gameStrategySeed = async () => {
     }
 };
 
-module.exports = { settingSeed, gameStrategySeed };
+const cashPlanSeed = async () => {
+    try {
+        const insertRecords = [
+            { amount: 5, bonus_amount: 0 },
+            { amount: 10, bonus_amount: 0 },
+            { amount: 20, bonus_amount: 0 },
+            { amount: 40, bonus_amount: 0 },
+            { amount: 80, bonus_amount: 0 },
+            { amount: 100, bonus_amount: 5 },
+            { amount: 200, bonus_amount: 10 },
+            { amount: 400, bonus_amount: 20 },
+            { amount: 1000, bonus_amount: 50 },
+        ];
+        await CashPlanModel.bulkCreate(insertRecords);
+    } catch (error) {
+        console.error("cashPlanSeed insert error=>", error);
+    }
+}
+
+const betSuggestPlansSeed = async () => {
+    try {
+        const insertRecords = [
+            { amount: 11 },
+            { amount: 20 },
+            { amount: 40 },
+            { amount: 80 },
+            { amount: 300 },
+            { amount: 5000 },
+        ];
+        await betSuggestPlansModel.bulkCreate(insertRecords);
+    } catch (error) {
+        console.error("betSuggestPlansSeed insert error=>", error);
+    }
+}
+
+const UpiRegisterSeed = async () => {
+    try {
+        const insertRecords = [
+            { upi_id: "djpatel1396@ybl", barcode_photo: "1723038027057WhatsAppImage2024-08-07at7.10.06PM.jpeg" },
+        ];
+        await UpiRegistersModel.bulkCreate(insertRecords);
+    } catch (error) {
+        console.error("UpiRegisterSeed insert error=>", error);
+    }
+}
+
+module.exports = { settingSeed, gameStrategySeed, cashPlanSeed, betSuggestPlansSeed, UpiRegisterSeed };

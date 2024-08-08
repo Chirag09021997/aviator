@@ -41,6 +41,7 @@ const strategyBettingCreate = async (gameStrategyId = null) => {
 };
 
 const PendingTime = Number(process.env.GAME_PENDING_TIME) || 5;
+const FlewAway = Number(process.env.FLEW_AWAY) || 3;
 
 cron.schedule('* * * * * *', async () => {
     // console.log(`cron job testing... Time ::  ${Date()}`);
@@ -53,7 +54,7 @@ cron.schedule('* * * * * *', async () => {
             const { id, game_strategy_id, result, status, created_at } = lastBetRecord;
             const newGameTime = new Date(created_at);
             const currentDateTime = new Date();
-            newGameTime.setSeconds(newGameTime.getSeconds() + ((result * 10) + PendingTime));
+            newGameTime.setSeconds(newGameTime.getSeconds() + ((result * 10) + PendingTime + FlewAway));
             // const differenceInSeconds = Math.floor((currentDateTime - newGameTime) / 1000);
             // console.log("newGameTime=>", newGameTime);
             // console.log("currentDateTime=>", currentDateTime);
