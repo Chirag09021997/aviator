@@ -102,6 +102,8 @@ const sendBettingEvent = async () => {
           bet_pending_time: differenceInSeconds < 0 ? Math.abs(differenceInSeconds) : 0,
           bet_x_time: differenceInSeconds > 0 ? (differenceInSeconds / 10) : 0,
           frequency: 1000,
+          flew_away: (FlewAway * 1000),
+          pending_time: (PendingTime * 1000)
         }
       });
       if (differenceInSeconds > 0 && bettingUsersData.length >= 0) {
